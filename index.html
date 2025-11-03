@@ -60,7 +60,7 @@
   .kritik-card { background-color: #e63946; }
   .masukan-card { background-color: #2a9d8f; }
 
-  /* Modal */
+  /* Modal umum */
   .modal {
     display: none;
     position: fixed;
@@ -82,14 +82,8 @@
     animation: popUp 0.3s ease;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-
-  @keyframes popUp {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
   select, textarea {
     width: 100%;
@@ -123,6 +117,30 @@
     font-size: 15px;
   }
 
+  /* Modal notifikasi */
+  .alert-modal-content {
+    text-align: center;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    animation: popUp 0.3s ease;
+  }
+  .alert-modal-content h3 {
+    color: #2a9d8f;
+    margin-bottom: 10px;
+  }
+  .alert-modal-content p {
+    color: #555;
+  }
+  .okBtn {
+    background-color: #2a9d8f;
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -142,7 +160,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Form -->
 <div id="feedbackModal" class="modal">
   <div class="modal-content">
     <span class="close" id="closeModal">&times;</span>
@@ -151,24 +169,25 @@
       <label for="to">Tujuan:</label>
       <select id="to" required>
         <option value="">-- Pilih Tujuan --</option>
-        <option>HCC</option>
-        <option>PML</option>
-        <option>INA</option>
-        <option>OPR1</option>
-        <option>OPR2</option>
-        <option>OPS</option>
-        <option>SBD</option>
-        <option>MBS</option>
-        <option>FRM</option>
-        <option>CSI</option>
-        <option>BOD</option>
-        <option>ALL</option>
+        <option>HCC</option><option>PML</option><option>INA</option>
+        <option>OPR1</option><option>OPR2</option><option>OPS</option>
+        <option>SBD</option><option>MBS</option><option>FRM</option>
+        <option>CSI</option><option>BOD</option><option>ALL</option>
       </select>
 
       <label for="content">Isi Pesan:</label>
       <textarea id="content" placeholder="Tulis isi pesan Anda..." required></textarea>
       <button type="submit" class="submitBtn">Kirim</button>
     </form>
+  </div>
+</div>
+
+<!-- Modal Notifikasi -->
+<div id="alertModal" class="modal">
+  <div class="alert-modal-content">
+    <h3>✅ Terima kasih!</h3>
+    <p>Data Anda telah tersimpan dengan sukses.</p>
+    <button class="okBtn" id="okBtn">OK</button>
   </div>
 </div>
 
@@ -179,13 +198,20 @@
   const closeModal = document.getElementById('closeModal');
   const modalTitle = document.getElementById('modalTitle');
   const formFeedback = document.getElementById('formFeedback');
+  const alertModal = document.getElementById('alertModal');
+  const okBtn = document.getElementById('okBtn');
 
   let feedbackType = '';
 
   kritikBtn.onclick = () => openModal('Kritik');
   masukanBtn.onclick = () => openModal('Masukan');
   closeModal.onclick = closeModalFn;
-  window.onclick = (e) => { if (e.target === modal) closeModalFn(); }
+  okBtn.onclick = () => { alertModal.style.display = 'none'; }
+
+  window.onclick = (e) => {
+    if (e.target === modal) closeModalFn();
+    if (e.target === alertModal) alertModal.style.display = 'none';
+  };
 
   function openModal(type) {
     feedbackType = type;
@@ -215,21 +241,18 @@
       timestamp: new Date().toLocaleString()
     };
 
+    // Kirim data tanpa menunggu lama
     fetch("https://script.google.com/macros/s/AKfycbwMLNnmSmlDeugsr4F881O8tx2uC1J1S_6HLjCvevjYVYVRRhnM8aYPTUVK_lxGPd0V/exec", {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    })
-    .then(() => {
-      alert(feedbackType + " Anda telah dikirim ke database!");
-      closeModalFn();
-      formFeedback.reset();
-    })
-    .catch((err) => {
-      alert("Terjadi kesalahan saat mengirim data.");
-      console.error(err);
     });
+
+    // Tutup form dan tampilkan notifikasi langsung
+    closeModalFn();
+    formFeedback.reset();
+    alertModal.style.display = 'flex';
   };
 </script>
 

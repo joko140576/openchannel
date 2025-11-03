@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Employee Box</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    color: #333;
+  }
+
+  .container {
+    max-width: 420px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  h1 {
+    font-size: 1.7em;
+    margin-bottom: 10px;
+    color: #2b2b2b;
+  }
+
+  p {
+    font-size: 0.95em;
+    text-align: justify;
+    color: #555;
+    margin-bottom: 15px;
+  }
+
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .card {
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s;
+    color: white;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  }
+
+  .kritik-card { background-color: #e63946; }
+  .masukan-card { background-color: #2a9d8f; }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s;
+  }
+
+  .modal-content {
+    background: white;
+    width: 85%;
+    max-width: 350px;
+    padding: 20px;
+    border-radius: 16px;
+    animation: popUp 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+
+  @keyframes popUp {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  select, textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  textarea {
+    resize: none;
+    height: 80px;
+  }
+
+  .close {
+    float: right;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+  }
+
+  .submitBtn {
+    background-color: #0077b6;
+    margin-top: 15px;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <img src="gambar.png" width="200" height="200" alt="">
+  <p><b>Open Channel</b> adalah ruang terbuka bagi seluruh karyawan untuk menyampaikan aspirasi, kritik, maupun saran secara positif. Tujuannya agar setiap suara dapat menjadi bahan refleksi dan perbaikan bersama.</p>
+  <p>Kami percaya bahwa setiap masukan memiliki nilai. Gunakan wadah ini untuk berbagi pandangan, menjaga transparansi, dan memperkuat kolaborasi antar seluruh tim di perusahaan.</p>
+
+  <div class="card-container">
+    <div class="card kritik-card" id="kritikBtn">
+      💬 <b>Kritik</b><br><small>Klik untuk menyampaikan kritik membangun</small>
+    </div>
+    <div class="card masukan-card" id="masukanBtn">
+      💡 <b>Masukan</b><br><small>Klik untuk memberikan ide dan saran</small>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="feedbackModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeModal">&times;</span>
+    <h3 id="modalTitle"></h3>
+    <form id="formFeedback">
+      <label for="to">Tujuan:</label>
+      <select id="to" required>
+        <option value="">-- Pilih Tujuan --</option>
+        <option>HCC</option>
+        <option>PML</option>
+        <option>INA</option>
+        <option>OPR1</option>
+        <option>OPR2</option>
+        <option>OPS</option>
+        <option>SBD</option>
+        <option>MBS</option>
+        <option>FRM</option>
+        <option>CSI</option>
+        <option>BOD</option>
+        <option>ALL</option>
+      </select>
+
+      <label for="content">Isi Pesan:</label>
+      <textarea id="content" placeholder="Tulis isi pesan Anda..." required></textarea>
+      <button type="submit" class="submitBtn">Kirim</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const kritikBtn = document.getElementById('kritikBtn');
+  const masukanBtn = document.getElementById('masukanBtn');
+  const modal = document.getElementById('feedbackModal');
+  const closeModal = document.getElementById('closeModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const formFeedback = document.getElementById('formFeedback');
+
+  let feedbackType = '';
+
+  kritikBtn.onclick = () => openModal('Kritik');
+  masukanBtn.onclick = () => openModal('Masukan');
+  closeModal.onclick = closeModalFn;
+  window.onclick = (e) => { if (e.target === modal) closeModalFn(); }
+
+  function openModal(type) {
+    feedbackType = type;
+    modalTitle.textContent = 'Form ' + type;
+    modal.style.display = 'flex';
+    navigator.vibrate?.(50);
+  }
+
+  function closeModalFn() {
+    modal.style.display = 'none';
+  }
+
+  formFeedback.onsubmit = (e) => {
+    e.preventDefault();
+    const to = document.getElementById('to').value.trim();
+    const content = document.getElementById('content').value.trim();
+
+    if (!to || !content) {
+      alert('Mohon isi semua kolom.');
+      return;
+    }
+
+    const payload = {
+      type: feedbackType,
+      to,
+      content,
+      timestamp: new Date().toLocaleString()
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbwMLNnmSmlDeugsr4F881O8tx2uC1J1S_6HLjCvevjYVYVRRhnM8aYPTUVK_lxGPd0V/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      alert(feedbackType + " Anda telah dikirim ke database!");
+      closeModalFn();
+      formFeedback.reset();
+    })
+    .catch((err) => {
+      alert("Terjadi kesalahan saat mengirim data.");
+      console.error(err);
+    });
+  };
+</script>
+
+</body>
+</html>

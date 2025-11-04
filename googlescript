@@ -1,0 +1,28 @@
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheets()[0];
+    var data = JSON.parse(e.postData.contents);
+
+    // Pastikan kolom header sesuai urutan ini:
+    // Timestamp | Type | Tujuan/Divisi | Nama Pegawai | Isi Pesan/Ide
+
+    var waktu = new Date();
+    var type = data.type || "";
+    var tujuan = data.to || data.divisi || "";
+    var nama = data.nama || "";
+    var isi = data.content || data.ide || "";
+
+    // Tambahkan data ke baris berikutnya
+    sheet.appendRow([waktu, type, tujuan, nama, isi]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: "error", message: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}

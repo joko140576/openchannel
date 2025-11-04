@@ -59,6 +59,7 @@
 
   .kritik-card { background-color: #e63946; }
   .masukan-card { background-color: #2a9d8f; }
+  .galileo-card { background-color: #457b9d; }
 
   /* Modal umum */
   .modal {
@@ -85,7 +86,7 @@
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-  select, textarea {
+  select, textarea, input {
     width: 100%;
     margin-top: 8px;
     padding: 10px;
@@ -157,10 +158,13 @@
     <div class="card masukan-card" id="masukanBtn">
       💡 <b>Masukan</b><br><small>Klik untuk memberikan ide dan saran</small>
     </div>
+    <div class="card galileo-card" id="galileoBtn">
+      🧠 <b>Galileo</b><br><small>Klik untuk berbagi ide dan gagasan</small>
+    </div>
   </div>
 </div>
 
-<!-- Modal Form -->
+<!-- Modal Form Umum (Kritik & Masukan) -->
 <div id="feedbackModal" class="modal">
   <div class="modal-content">
     <span class="close" id="closeModal">&times;</span>
@@ -182,6 +186,35 @@
   </div>
 </div>
 
+<!-- Modal Galileo -->
+<div id="galileoModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeGalileo">&times;</span>
+    <h3>🧠 Galileo (Gali Ide Ide Lho)</h3>
+    <p style="font-size:13px; text-align:justify;">
+      Galileo adalah wadah bagi seluruh pegawai PT SSI untuk menyumbangkan ide-ide, gagasan, program kerja, atau pemikiran awal tentang sesuatu yang dapat memberi nilai tambah bagi perusahaan.
+    </p>
+    <form id="formGalileo">
+      <label for="namaPegawai">Nama Pegawai:</label>
+      <input type="text" id="namaPegawai" placeholder="Tulis nama Anda..." required>
+
+      <label for="divisiPegawai">Divisi:</label>
+      <select id="divisiPegawai" required>
+        <option value="">-- Pilih Divisi --</option>
+        <option>HCC</option><option>PML</option><option>INA</option>
+        <option>OPR1</option><option>OPR2</option><option>OPS</option>
+        <option>SBD</option><option>MBS</option><option>FRM</option>
+        <option>CSI</option><option>BOD</option>
+      </select>
+
+      <label for="ideContent">Isi Ide Anda:</label>
+      <textarea id="ideContent" placeholder="Tuliskan ide atau gagasan Anda..." required></textarea>
+
+      <button type="submit" class="submitBtn">Kirim Ide</button>
+    </form>
+  </div>
+</div>
+
 <!-- Modal Notifikasi -->
 <div id="alertModal" class="modal">
   <div class="alert-modal-content">
@@ -194,10 +227,17 @@
 <script>
   const kritikBtn = document.getElementById('kritikBtn');
   const masukanBtn = document.getElementById('masukanBtn');
+  const galileoBtn = document.getElementById('galileoBtn');
+
   const modal = document.getElementById('feedbackModal');
+  const galileoModal = document.getElementById('galileoModal');
   const closeModal = document.getElementById('closeModal');
+  const closeGalileo = document.getElementById('closeGalileo');
+
   const modalTitle = document.getElementById('modalTitle');
   const formFeedback = document.getElementById('formFeedback');
+  const formGalileo = document.getElementById('formGalileo');
+
   const alertModal = document.getElementById('alertModal');
   const okBtn = document.getElementById('okBtn');
 
@@ -205,11 +245,15 @@
 
   kritikBtn.onclick = () => openModal('Kritik');
   masukanBtn.onclick = () => openModal('Masukan');
-  closeModal.onclick = closeModalFn;
-  okBtn.onclick = () => { alertModal.style.display = 'none'; }
+  galileoBtn.onclick = () => openGalileo();
+
+  closeModal.onclick = () => modal.style.display = 'none';
+  closeGalileo.onclick = () => galileoModal.style.display = 'none';
+  okBtn.onclick = () => alertModal.style.display = 'none';
 
   window.onclick = (e) => {
-    if (e.target === modal) closeModalFn();
+    if (e.target === modal) modal.style.display = 'none';
+    if (e.target === galileoModal) galileoModal.style.display = 'none';
     if (e.target === alertModal) alertModal.style.display = 'none';
   };
 
@@ -220,8 +264,9 @@
     navigator.vibrate?.(50);
   }
 
-  function closeModalFn() {
-    modal.style.display = 'none';
+  function openGalileo() {
+    galileoModal.style.display = 'flex';
+    navigator.vibrate?.(50);
   }
 
   formFeedback.onsubmit = (e) => {
@@ -229,10 +274,7 @@
     const to = document.getElementById('to').value.trim();
     const content = document.getElementById('content').value.trim();
 
-    if (!to || !content) {
-      alert('Mohon isi semua kolom.');
-      return;
-    }
+    if (!to || !content) return alert('Mohon isi semua kolom.');
 
     const payload = {
       type: feedbackType,
@@ -241,17 +283,41 @@
       timestamp: new Date().toLocaleString()
     };
 
-    // Kirim data tanpa menunggu lama
     fetch("https://script.google.com/macros/s/AKfycbwMLNnmSmlDeugsr4F881O8tx2uC1J1S_6HLjCvevjYVYVRRhnM8aYPTUVK_lxGPd0V/exec", {
-      method: "POST",
-      mode: "no-cors",
+      method: "POST", mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    // Tutup form dan tampilkan notifikasi langsung
-    closeModalFn();
+    modal.style.display = 'none';
     formFeedback.reset();
+    alertModal.style.display = 'flex';
+  };
+
+  formGalileo.onsubmit = (e) => {
+    e.preventDefault();
+    const nama = document.getElementById('namaPegawai').value.trim();
+    const divisi = document.getElementById('divisiPegawai').value.trim();
+    const ide = document.getElementById('ideContent').value.trim();
+
+    if (!nama || !divisi || !ide) return alert('Mohon isi semua kolom.');
+
+    const payload = {
+      type: "Galileo",
+      nama,
+      divisi,
+      ide,
+      timestamp: new Date().toLocaleString()
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbym8ahxh-E9nlCxDaqLslK-riotKsVyXifVmu9IOmyDgDuNUA_FeqYLrUbmEfmp7EY/exec", {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    galileoModal.style.display = 'none';
+    formGalileo.reset();
     alertModal.style.display = 'flex';
   };
 </script>

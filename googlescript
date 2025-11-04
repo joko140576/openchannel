@@ -1,28 +1,45 @@
 function doPost(e) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheets()[0];
-    var data = JSON.parse(e.postData.contents);
+    // Parse incoming body: coba JSON dulu, kalau gagal fallback ke e.parameter
+    var payload = {};
+    if (e.postData && e.postData.contents) {
+      try {
+        payload = JSON.parse(e.postData.contents);
+      } catch (jsonErr) {
+        // jika bukan JSON, tetap coba gunakan e.parameter
+        payload = e.parameter || {};
+      }
+    } else {
+      payload = e.parameter || {};
+    }
 
-    // Pastikan kolom header sesuai urutan ini:
-    // Timestamp | Type | Tujuan/Divisi | Nama Pegawai | Isi Pesan/Ide
+    // Buka spreadsheet dan sheet (ganti ID dan nama sheet)
+    var ss = SpreadsheetApp.openById("10tX29vkIA9xij1MsLmYk5PBR-GuRADHApLg9yUpRw8w"); // <-- ganti dengan ID sheet
+    var sheet = ss.getSheetByName("Sheet1"); // <-- ganti dengan nama sheet ('Sheet1'/'Data' dll)
 
-    var waktu = new Date();
-    var type = data.type || "";
-    var tujuan = data.to || data.divisi || "";
-    var nama = data.nama || "";
-    var isi = data.content || data.ide || "";
+    // Siapkan nilai default / trimming
+    var tipe = (payload.type || payload.tipe || "").toString().trim();
+    var tujuan = (payload.to || payload.divisi || payload.tujuan || "").toString().trim();
+    var isi = (payload.content || payload.ide || payload.isi || "").toString().trim();
+    var nama = (payload.nama || payload.name || "").toString().trim();
 
-    // Tambahkan data ke baris berikutnya
-    sheet.appendRow([waktu, type, tujuan, nama, isi]);
+    var timestamp = new Date();
 
+    // Susun row sesuai kolom: Timestamp, Type, Tujuan/Divisi, isi Pesan/Ide, Nama Pegawai
+    var row = [ timestamp, tipe, tujuan, isi, nama ];
+
+    sheet.appendRow(row);
+
+    // Kembalikan respons JSON (normal web app response)
     return ContentService
       .createTextOutput(JSON.stringify({ result: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
+    // Log error untuk debugging
+    Logger.log("doPost error: " + err);
     return ContentService
-      .createTextOutput(JSON.stringify({ result: "error", message: err.message }))
+      .createTextOutput(JSON.stringify({ result: "error", message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
